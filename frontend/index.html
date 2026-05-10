@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SenSante - Pré-diagnostic</title>
+
+  <!-- Tailwind CSS via CDN : rien à installer, ça charge depuis internet -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Spinner animé pendant le chargement */
+    .spinner {
+      border: 3px solid #e5e7eb;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Animation de la barre de probabilité */
+    .bar-animate { transition: width 0.8s ease-in-out; }
+  </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- HEADER -->
+  <header class="bg-blue-600 text-white py-4 shadow-lg">
+    <div class="max-w-4xl mx-auto px-4">
+      <h1 class="text-2xl font-bold">SenSante</h1>
+      <p class="text-blue-100 text-sm">Assistant pré-diagnostic médical</p>
+    </div>
+  </header>
+
+  <!-- CONTENU PRINCIPAL -->
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Colonne gauche : formulaire (on le remplit à l'étape 3) -->
+         <!-- Colonne gauche : formulaire -->
+<div id="form-section" class="bg-white rounded-xl shadow-md p-6">
+
+  <h2 class="text-xl font-bold text-gray-800 mb-4">Symptômes du patient</h2>
+
+  <!-- Champ Âge -->
+  <div class="mb-3">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Âge</label>
+    <input type="number" id="age"
+      class="w-full border border-gray-300 rounded-lg p-2
+             focus:ring-2 focus:ring-blue-500 focus:outline-none"
+      placeholder="Ex: 28" min="0" max="120">
+  </div>
+
+  <!-- Champ Sexe -->
+  <div class="mb-3">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Sexe</label>
+    <select id="sexe"
+      class="w-full border border-gray-300 rounded-lg p-2
+             focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      <option value="F">Féminin</option>
+      <option value="M">Masculin</option>
+    </select>
+  </div>
+
+  <!-- Champ Température -->
+  <div class="mb-3">
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+      Température (°C)
+    </label>
+    <input type="number" id="temperature" step="0.1"
+      class="w-full border border-gray-300 rounded-lg p-2
+             focus:ring-2 focus:ring-blue-500 focus:outline-none"
+      placeholder="Ex: 38.5" min="35" max="42">
+  </div>
+
+  <!-- Champ Tension systolique -->
+  <div class="mb-3">
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+      Tension systolique
+    </label>
+    <input type="number" id="tension_sys"
+      class="w-full border border-gray-300 rounded-lg p-2
+             focus:ring-2 focus:ring-blue-500 focus:outline-none"
+      placeholder="Ex: 120" min="60" max="250">
+  </div>
+
+  <!-- Cases à cocher Symptômes -->
+  <div class="mb-3">
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+      Symptômes
+    </label>
+    <div class="space-y-2">
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" id="toux"
+          class="mr-2 w-4 h-4 accent-blue-600">
+        <span class="text-gray-700">Toux</span>
+      </label>
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" id="fatigue"
+          class="mr-2 w-4 h-4 accent-blue-600">
+        <span class="text-gray-700">Fatigue</span>
+      </label>
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" id="maux_tete"
+          class="mr-2 w-4 h-4 accent-blue-600">
+        <span class="text-gray-700">Maux de tête</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Champ Région -->
+  <div class="mb-4">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Région</label>
+    <select id="region"
+      class="w-full border border-gray-300 rounded-lg p-2
+             focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      <option value="Dakar">Dakar</option>
+      <option value="Thies">Thiès</option>
+      <option value="Saint-Louis">Saint-Louis</option>
+      <option value="Ziguinchor">Ziguinchor</option>
+      <option value="Tambacounda">Tambacounda</option>
+      <option value="Kaolack">Kaolack</option>
+      <option value="Diourbel">Diourbel</option>
+      <option value="Fatick">Fatick</option>
+      <option value="Kolda">Kolda</option>
+      <option value="Matam">Matam</option>
+    </select>
+  </div>
+
+  <!-- Bouton Diagnostiquer -->
+  <!-- onclick="diagnostiquer()" appelle la fonction JS de l'étape 4 -->
+  <button onclick="diagnostiquer()" id="btn-diag"
+    class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg
+           hover:bg-blue-700 transition duration-200 shadow-md">
+    Diagnostiquer
+  </button>
+
+</div>
+
+      <!-- Colonne droite : résultat (on le remplit à l'étape 5) -->
+      <!-- Colonne droite : résultat -->
+<!-- Affiché avant le premier clic -->
+<div id="result-section">
+  <div class="bg-white rounded-xl shadow-md p-6 text-center text-gray-400">
+    <p class="text-5xl mb-3">🩺</p>
+    <p class="font-medium text-gray-500">Remplissez le formulaire</p>
+    <p class="text-sm mt-1">
+      puis cliquez sur <strong>Diagnostiquer</strong>
+    </p>
+  </div>
+</div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="text-center text-gray-400 text-sm py-4">
+    SenSante v0.3 — ESP/UCAD — L2 GLSI 2026
+  </footer>
+
+  <!-- JavaScript (on le remplit à l'étape 4) -->
+  <script>
+
+  // L'URL de ton API — change le port si besoin
+  const API_URL = "http://localhost:8000";
+
+  // ===========================================================
+  // FONCTION PRINCIPALE : appelée au clic sur "Diagnostiquer"
+  // ===========================================================
+  async function diagnostiquer() {
+
+    // 1. Lire les valeurs de chaque champ via son id
+    const patient = {
+      age:         parseInt(document.getElementById("age").value),
+      sexe:        document.getElementById("sexe").value,
+      temperature: parseFloat(document.getElementById("temperature").value),
+      tension_sys: parseInt(document.getElementById("tension_sys").value),
+      toux:        document.getElementById("toux").checked,
+      fatigue:     document.getElementById("fatigue").checked,
+      maux_tete:   document.getElementById("maux_tete").checked,
+      region:      document.getElementById("region").value
+    };
+
+    // 2. Vérifier que les champs obligatoires sont remplis (validation côté client)
+    if (!patient.age || isNaN(patient.age) ||
+        !patient.temperature || isNaN(patient.temperature) ||
+        !patient.tension_sys || isNaN(patient.tension_sys)) {
+      afficherErreur("Veuillez remplir Âge, Température et Tension.");
+      return; // on arrête ici si un champ est vide
+    }
+
+    // 3. Afficher le spinner pendant qu'on attend la réponse de l'API
+    afficherChargement();
+
+    try {
+
+      // 4. Envoyer la requête POST à l'API avec fetch()
+      //    fetch() = équivalent de curl mais dans le navigateur
+      const response = await fetch(API_URL + "/predict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(patient)  // convertit l'objet JS en texte JSON
+      });
+
+      // 5. Vérifier que l'API n'a pas répondu avec une erreur HTTP
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(
+          err.detail ? JSON.stringify(err.detail) : "Erreur serveur"
+        );
+      }
+
+      // 6. Lire le JSON retourné par l'API
+      const resultat = await response.json();
+      // resultat ressemble à :
+      // { diagnostic: "palu", probabilite: 0.72, confiance: "haute", message: "..." }
+
+      // 7. Afficher le résultat avec code couleur
+      afficherResultat(resultat);
+
+    } catch (error) {
+      // Si fetch() échoue (API éteinte, pas de réseau...)
+      afficherErreur("Erreur de connexion : " + error.message);
+    }
+  }
+
+  // ===========================================================
+  // FONCTION 2 : affiche un spinner pendant le chargement
+  // ===========================================================
+  function afficherChargement() {
+    document.getElementById("result-section").innerHTML = `
+      <div class="bg-white rounded-xl shadow-md p-6 text-center">
+        <div class="spinner mx-auto mb-4"></div>
+        <p class="text-gray-500 text-sm">Analyse en cours...</p>
+      </div>
+    `;
+  }
+
+  // ===========================================================
+  // FONCTION 3 : affiche le résultat avec le bon code couleur
+  // ===========================================================
+  function afficherResultat(r) {
+
+    // Couleurs Tailwind selon le diagnostic reçu de l'API
+    const couleurs = {
+      palu:   { bg:"bg-red-100",    text:"text-red-800",
+                bar:"bg-red-500",    badge:"bg-red-500"    },
+      grippe: { bg:"bg-orange-100", text:"text-orange-800",
+                bar:"bg-orange-500", badge:"bg-orange-500" },
+      typh:   { bg:"bg-yellow-100", text:"text-yellow-800",
+                bar:"bg-yellow-500", badge:"bg-yellow-500" },
+      sain:   { bg:"bg-green-100",  text:"text-green-800",
+                bar:"bg-green-500",  badge:"bg-green-500"  }
+    };
+
+    // Si le diagnostic est inconnu, on utilise "sain" par défaut
+    const c = couleurs[r.diagnostic] || couleurs["sain"];
+
+    // Convertir 0.72 → 72
+    const pct = Math.round(r.probabilite * 100);
+
+    // Injecter le HTML du résultat dans la colonne droite
+    document.getElementById("result-section").innerHTML = `
+      <div class="bg-white rounded-xl shadow-md p-6">
+
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Résultat</h2>
+
+        <!-- Bloc coloré avec le nom du diagnostic -->
+        <div class="${c.bg} rounded-lg p-4 mb-4">
+          <p class="text-sm text-gray-600">Diagnostic :</p>
+          <p class="text-2xl font-bold ${c.text} uppercase mt-1">
+            ${r.diagnostic}
+          </p>
+        </div>
+
+        <!-- Barre de probabilité -->
+        <div class="mb-4">
+          <div class="flex justify-between mb-1">
+            <span class="text-sm text-gray-600">Probabilité</span>
+            <span class="text-sm font-bold ${c.text}">${pct}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-3">
+            <div class="${c.bar} h-3 rounded-full bar-animate"
+                 style="width:0%" id="progress-bar"></div>
+          </div>
+        </div>
+
+        <!-- Badge niveau de confiance -->
+        <div class="flex items-center gap-2 mb-3">
+          <span class="${c.badge} text-white text-xs px-2 py-1 rounded-full">
+            ${r.confiance}
+          </span>
+          <span class="text-sm text-gray-600">confiance</span>
+        </div>
+
+        <!-- Message texte de l'API -->
+        <div class="bg-gray-50 rounded-lg p-3">
+          <p class="text-sm text-gray-700">${r.message}</p>
+        </div>
+
+      </div>
+    `;
+
+    // Déclencher l'animation de la barre 50ms après l'injection HTML
+    // (sans ce délai, la transition CSS ne se voit pas)
+    setTimeout(() => {
+      const bar = document.getElementById("progress-bar");
+      if (bar) bar.style.width = pct + "%";
+    }, 50);
+  }
+
+  // ===========================================================
+  // FONCTION 4 : affiche un message d'erreur en rouge
+  // ===========================================================
+  function afficherErreur(msg) {
+    document.getElementById("result-section").innerHTML = `
+      <div class="bg-red-50 border border-red-200 rounded-xl p-6">
+        <p class="text-red-700 font-medium">❌ ${msg}</p>
+        <p class="text-red-500 text-sm mt-2">
+          Vérifiez votre connexion et réessayez.
+        </p>
+      </div>
+    `;
+  }
+
+</script>
+
+</body>
+</html>
