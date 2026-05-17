@@ -4,6 +4,33 @@ import joblib          # ← ajouter
 import numpy as np     # ← ajouter
 from fastapi.middleware.cors import CORSMiddleware   # ← AJOUTER
 
+import os
+from dotenv import load_dotenv
+from groq import Groq
+
+load_dotenv()
+
+groq_client = None
+groq_api_key = os.getenv("GROQ_API_KEY")
+if groq_api_key:
+    groq_client = Groq(api_key=groq_api_key)
+    print("Client Groq initialisé.")
+else:
+    print("ATTENTION : clé non trouvée. /explain désactivé.")
+
+
+class ExplainInput(BaseModel):
+    diagnostic: str
+    probabilite: float
+    age: int
+    sexe: str
+    temperature: float
+    region: str
+
+class ExplainOutput(BaseModel):
+    explication: str
+    modele_llm: str = "llama-3.1-8b-instant"
+
 # --- Schémas Pydantic (déjà faits à l'étape 3) ---
 class PatientInput(BaseModel):
     age: int = Field(..., ge=0, le=120)
@@ -112,3 +139,39 @@ def predict(patient: PatientInput):
         confiance=confiance,
         message=messages.get(diagnostic, "Consultez un médecin.")
     )
+
+SYSTEM_PROMPT = """Tu es un assistant médical sénégalais.
+Explique le diagnostic en français simple comme un médecin.
+Sois rassurant mais recommande toujours une consultation.
+Maximum 3 phrases. Ne fais JAMAIS de diagnostic toi-même."""
+
+@app.post("/explain", response_model=ExplainOutput)
+def explain(data: ExplainInput):
+    if not groq_client:
+        return ExplainOutput(
+            explication="Service indisponible. Clé API non configurée.",
+            modele_llm="aucun"
+        )
+
+    user_prompt = (
+        f"Patient : {data.sexe}, {data.age} ans, région {data.region}\n"
+        f"Température : {data.temperature}°C\n"
+        f"Diagnostic : {data.diagnostic} (probabilité {data.probabilite:.0%})\n"
+        f"Explique ce résultat au patient."
+    )
+
+    try:
+        response = groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=200,
+            temperature=0.3
+        )
+        explication = response.choices[0].message.content
+    except Exception as e:
+        explication = f"Erreur : {str(e)}"
+
+    return ExplainOutput(explication=explication)

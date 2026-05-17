@@ -20,3 +20,5 @@ Thumbs.db
 #Fichiers temporaires matplotlib
 *.png
 !figures/*.png
+
+.env
