@@ -1,21 +1,33 @@
+﻿---
+title: Sensante
+emoji: 🏥
+colorFrom: green
+colorTo: blue
+sdk: docker
+pinned: false
+---
+
 # SenSante
 
-Assistant de pre - diagnostic medical pour le Senegal .
+Assistant de pré-diagnostic médical pour le Sénégal.
+
 ## Description
 
-SenSante utilise le Machine Learning pour aider au
-pre - diagnostic des maladies courantes ( paludisme ,
-grippe , typhoide ) a partir des symptomes du patient .
+SenSante utilise le Machine Learning pour aider au pré-diagnostic des maladies courantes (paludisme, grippe, typhoïde) à partir des symptômes du patient.
+
 ## Structure du projet
 
-- `data /` : Donnees patients (CSV )
-- `models /` : Modele ML serialise
-- `api/` : API FastAPI
-- `frontend /` : Interface web
-- `notebooks /` : Scripts d'exploration
+- data/ : Données patients (CSV)
+- models/ : Modèle ML sérialisé
+- pi/ : API FastAPI
+- rontend/ : Interface web
+- 
+otebooks/ : Scripts d'exploration
+
 ## Auteur
 
-Marie Gueye - L2 GLSIA - ESP/ UCAD
+Marie Gueye - L2 GLSIA - ESP/UCAD
+
 ## Cours
 
-Integration de Modeles IA - Dr. El Hadji Bassirou TOURE
+Intégration de Modèles IA - Dr. El Hadji Bassirou TOURE
